@@ -1,56 +1,16 @@
 <script setup>
-import Task from './Task';
-import {computed, defineEmit, defineProps} from "vue";
+import PureTaskList from './PureTaskList';
+import {useStore} from "vuex";
+import {computed} from "vue";
 
-const emit = defineEmit(['archive-task', 'pin-task']);
+const store = useStore();
 
-const props = defineProps({
-  tasks: { type: Array, required: true, default: () => [] },
-  loading: { type: Boolean, default: false },
-});
-
-const isEmpty = computed(() => props.tasks.length === 0);
-
-const tasksInOrder = computed(() => {
-  return [
-    ...props.tasks.filter(t => t.state ==='TASK_PINNED'),
-    ...props.tasks.filter(t => t.state !=='TASK_PINNED'),
-  ];
-});
-
-function onArchiveTask(taskId) {
-  emit('archive-task', taskId);
-}
-
-function onPinTask(taskId) {
-  emit('pin-task', taskId);
-}
+const tasks  = computed(() => store.state.tasks);
+const archiveTask = task => store.dispatch('archiveTask', task);
+const pinTask = task => store.dispatch('pinTask', task);
 
 </script>
 
 <template>
-  <div class="list-items">
-    <template v-if="loading">
-      <div v-for="n in 6" :key="n" class="loading-item">
-        <span class="glow-checkbox" />
-        <span class="glow-text"> <span>Loading</span> <span>cool</span> <span>state</span> </span>
-      </div>
-    </template>
-    <template v-else-if="isEmpty">
-      <div class="wrapper-message">
-        <span class="icon-check" />
-        <div class="title-message">You have no tasks</div>
-        <div class="subtitle-message">Sit back and relax</div>
-      </div>
-    </template>
-    <template v-else>
-      <Task
-          v-for="task in tasksInOrder"
-          :key="task.id"
-          :task="task"
-          @archive-task="onArchiveTask"
-          @pin-task="onPinTask"
-      />
-    </template>
-  </div>
+  <PureTaskList :tasks="tasks" @archive-task="archiveTask" @pin-task="pinTask" />
 </template>
